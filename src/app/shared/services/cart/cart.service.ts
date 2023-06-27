@@ -103,11 +103,6 @@ export class CartService {
     return this.httpClient.put(environment.cart.get + '/' + item.id, item);
   }
 
-  // removeQuantity(item: CartItemModel) {
-  //   item.quantity--;
-  //   return this.httpClient.put(environment.cart.get + '/' + item.id, item);
-  // }
-
   delete(item: CartItemModel) {
     return this.httpClient.delete(environment.cart.get + '/' + item.id);
   }
@@ -141,7 +136,6 @@ export class CartService {
     this.cart = items;
     this.cartListener.next(items);
     console.log(this.cart);
-    // this._snackBar.open('1 item added to cart.', 'Ok', { duration: 3000 });
   }
 
   removeFromCart(item: CartItemModel, updateCart = true): CartItemModel[] {
@@ -156,9 +150,6 @@ export class CartService {
     if (updateCart) {
       this.cart = filteredItems;
       this.cartListener.next(filteredItems);
-      // this._snackBar.open('1 item removed from cart.', 'Ok', {
-      //   duration: 3000,
-      // });
     }
 
     return filteredItems;
@@ -186,8 +177,5 @@ export class CartService {
 
     this.cart = filteredItems;
     this.cartListener.next(filteredItems);
-    // this._snackBar.open('1 item removed from cart.', 'Ok', {
-    //   duration: 3000,
-    // });
   }
 }
