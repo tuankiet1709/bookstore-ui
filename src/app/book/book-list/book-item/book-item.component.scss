@@ -1,0 +1,14 @@
+.text-truncate-container p {
+  -webkit-line-clamp: 2;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.h-250 {
+  height: 250px;
+}
+
+.h-360 {
+  height: 360px;
+}
