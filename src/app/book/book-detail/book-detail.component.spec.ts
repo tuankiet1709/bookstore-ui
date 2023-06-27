@@ -98,13 +98,5 @@ describe('BookDetailComponent', () => {
     component.onAddToCart();
 
     expect(mockCartService.addToCart).toHaveBeenCalled();
-
-    // expect(.addToCart).toHaveBeenCalledWith({
-    //   product: 'book1.jpg',
-    //   name: 'Book 1',
-    //   price: 10,
-    //   quantity: 1,
-    //   id: 1,
-    // });
   });
 });

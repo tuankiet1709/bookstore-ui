@@ -139,7 +139,6 @@ describe('BookCreateComponent', () => {
   });
 
   it('should call createBook and navigate to book list when editMode is false', () => {
-    // Arrange
     component.bookForm = new FormGroup({
       title: new FormControl('Test Book', Validators.required),
       price: new FormControl(10, Validators.required),
@@ -151,18 +150,15 @@ describe('BookCreateComponent', () => {
     });
     spyOn(component.router, 'navigate');
 
-    // Act
     component.editMode = false;
     component.onSubmit();
 
-    // Assert
     expect(component.router.navigate).toHaveBeenCalledWith([
       'books/management/book-list',
     ]);
   });
 
   it('should call updateBook and navigate to book list when editMode is true', () => {
-    // Arrange
     component.bookForm = new FormGroup({
       title: new FormControl('Test Book', Validators.required),
       price: new FormControl(10, Validators.required),
@@ -174,12 +170,10 @@ describe('BookCreateComponent', () => {
     });
     spyOn(component.router, 'navigate');
 
-    // Act
     component.editMode = true;
     component.id = '3';
     component.onSubmit();
 
-    // Assert
     expect(component.router.navigate).toHaveBeenCalledWith([
       'books/management/book-list',
     ]);
