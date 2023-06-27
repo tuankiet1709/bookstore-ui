@@ -1,0 +1,33 @@
+<br />
+<div class="container mb-5">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-4">
+        <img [src]="book!.image" class="img-fluid w-100 rounded" />
+      </div>
+      <div class="col-md-8">
+        <p class="row fs-2 mt-2">{{ book!.title }}</p>
+        <p class="row fs-3 mt-2">
+          {{ book!.price.toString() | currency : "VND" : "" }} VND
+        </p>
+        <p class="row fs-6">Description: {{ book!.description }}</p>
+        <hr />
+        <p class="row fs-5">Author: {{ book!.author }}</p>
+        <br />
+        <div class="row">
+          <div class="col-md-4">
+            <div class="container-btn">
+              <button
+                class="btn btn-outline-dark w-100"
+                [disabled]="book!.quantity === 0"
+                (click)="onAddToCart()"
+              >
+                {{ book!.quantity > 0 ? "Add to card" : "Out of stock" }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

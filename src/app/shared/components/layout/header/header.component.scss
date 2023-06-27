@@ -1,0 +1,16 @@
+* {
+  z-index: 2;
+}
+.button {
+  background-color: #171717;
+  color: white;
+  height: 100%;
+}
+.button:hover {
+  background-color: #3c3c3c;
+}
+.active {
+  background-color: #121212 !important;
+  border: none;
+  border-radius: 0;
+}

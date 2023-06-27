@@ -1,0 +1,35 @@
+<div *ngIf="book">
+  <div class="d-flex justify-content-center w-100">
+    <a
+      routerLink="{{ book!.id }}"
+      class="card text-decoration-none text-black d-flex justify-content-center border-0"
+    >
+      <img
+        class="mb-1 mx-auto card-img-top"
+        [ngClass]="{ 'h-250': !fullWidthMode, 'h-360': fullWidthMode }"
+        src="{{ book!.image }}"
+        alt="..."
+      />
+    </a>
+  </div>
+
+  <div class="card-body">
+    <h4 class="card-title text-truncate fs-5 fw-bold text-center">
+      {{ book!.title }}
+    </h4>
+    <h4 class="text-truncate text-center">
+      {{ book!.category.name }}
+    </h4>
+    <p class="card-text text-center fs-6">
+      {{ book!.price.toString() | currency : "VND" : "" }} VND
+    </p>
+
+    <button
+      class="btn btn-outline-dark w-100"
+      [disabled]="book!.quantity === 0"
+      (click)="onAddToCart()"
+    >
+      {{ book!.quantity > 0 ? "Add to card" : "Out of stock" }}
+    </button>
+  </div>
+</div>

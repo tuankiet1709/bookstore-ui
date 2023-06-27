@@ -1,0 +1,52 @@
+<mat-toolbar>
+  <div class="container p-2">
+    <div class="row d-flex align-items-center">
+      <div class="col-md-2">
+        <a routerLink="/" class="fs-2 text-decoration-none fst-italic fs-bolder"
+          >BookStore
+        </a>
+      </div>
+      <div class="col-md-5">
+        <form [formGroup]="searchForm">
+          <div class="input-group">
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Search your favorite books ..."
+              aria-label="Search"
+              aria-describedby="button-addon2"
+              formControlName="search"
+            />
+            <button
+              class="btn btn-outline-dark"
+              type="submit"
+              id="button-addon2"
+            >
+              <i class="bi bi-search"></i>
+            </button>
+          </div>
+        </form>
+      </div>
+      <div class="col-md-1"></div>
+      <div class="col-md-1">
+        <button mat-icon-button routerLink="/cart">
+          <mat-icon [matBadge]="cartAmount" matBadgeColor="warn"
+            >shopping_cart</mat-icon
+          >
+        </button>
+      </div>
+      <div class="col-md-1" *ngIf="!userIsAuthenticated">
+        <button routerLink="/login" class="btn button-outline-dark w-100">
+          Login/Register
+        </button>
+      </div>
+      <div class="col-md-1" *ngIf="userIsAuthenticated">
+        <h3 class="w-100" style="margin: 0px">Hello {{ name }}</h3>
+      </div>
+      <div class="col-md-1" *ngIf="userIsAuthenticated">
+        <button class="btn button w-100" (click)="onLogout()">Logout</button>
+      </div>
+    </div>
+  </div>
+</mat-toolbar>
+<br />

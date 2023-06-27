@@ -1,0 +1,26 @@
+<div class="container-fluid min-vh-100">
+  <div class="row">
+    <div class="col-12 col-md-3 bg-light p-4">
+      <app-book-filter
+        (showCategory)="onShowCategory($event)"
+      ></app-book-filter>
+    </div>
+    <div class="col-12 col-md-9 p-4">
+      <mat-grid-list
+        *ngIf="bookDisplay && bookDisplay.length"
+        gutterSize="16"
+        [cols]="cols"
+        [rowHeight]="rowHeight"
+      >
+        <mat-grid-tile *ngFor="let book of bookDisplay">
+          <app-book-item
+            (addToCart)="onAddToCart($event)"
+            [book]="book"
+            [fullWidthMode]="cols === 1"
+            class="w-100"
+          ></app-book-item>
+        </mat-grid-tile>
+      </mat-grid-list>
+    </div>
+  </div>
+</div>

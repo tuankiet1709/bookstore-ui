@@ -1,0 +1,101 @@
+<div
+  class="d-flex justify-content-center w-100 mb-5 mt-5"
+  *ngIf="(editMode && book) || (!editMode && categories.length > 0)"
+>
+  <div class="login-box w-75">
+    <h2>{{ editMode ? "Edit Book" : "Create new Book" }}</h2>
+    <form [formGroup]="bookForm" (ngSubmit)="onSubmit()">
+      <div class="mb-3 form-floating">
+        <input
+          class="form-control"
+          placeholder="Leave a comment here"
+          id="title"
+          formControlName="title"
+        />
+        <label for="title">Title</label>
+      </div>
+      <div class="mb-3 form-floating">
+        <input
+          matInput
+          class="form-control"
+          placeholder="Leave a comment here"
+          id="price"
+          formControlName="price"
+          currencyMask
+        />
+        <label for="price">Price</label>
+      </div>
+      <div class="mb-3 form-floating">
+        <input
+          matInput
+          class="form-control"
+          placeholder="Leave a comment here"
+          id="quantity"
+          formControlName="quantity"
+        />
+        <label for="quantity">Quantity</label>
+      </div>
+      <div class="mb-3 form-floating">
+        <input
+          class="form-control"
+          placeholder="Leave a comment here"
+          id="image"
+          formControlName="image"
+        />
+        <label for="image">Image</label>
+      </div>
+      <div class="mb-3 form-floating">
+        <input
+          class="form-control"
+          placeholder="Leave a comment here"
+          id="author"
+          formControlName="author"
+        />
+        <label for="author">Author</label>
+      </div>
+
+      <div class="mb-3 form-floating">
+        <select formControlName="category" class="form-select custom-select">
+          <option *ngFor="let category of categories" [value]="category.id">
+            {{ category.name }}
+          </option>
+        </select>
+        <label class="" for="categoryId">Category</label>
+      </div>
+
+      <div class="mb-3 form-floating">
+        <textarea
+          class="form-control"
+          placeholder="Leave a comment here"
+          id="description"
+          formControlName="description"
+          style="height: 100px"
+        >
+        </textarea>
+        <label for="description">Description</label>
+      </div>
+
+      <div class="row">
+        <div class="col-md-5">
+          <button
+            type="submit"
+            [disabled]="!bookForm.valid"
+            class="btn btn-success w-100"
+          >
+            {{ editMode ? "Save" : "Create" }}
+          </button>
+        </div>
+        <div class="col-md-2"></div>
+        <div class="col-md-5">
+          <button
+            type="submit"
+            class="btn btn-secondary w-100"
+            (click)="onCancel()"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
