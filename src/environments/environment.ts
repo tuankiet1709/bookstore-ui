@@ -14,6 +14,9 @@ export const environment = {
     get: baseUrl + '/book?limit={limit}&page={page}&search={search}',
     getDetail: baseUrl + '/book/{id}',
     getByCategory: baseUrl + '/book?categoryId={categoryId}',
+    createBook: baseUrl + '/book',
+    editBook: baseUrl + '/book/{id}',
+    deleteBook: baseUrl + '/book/{id}',
   },
   category: {
     get: baseUrl + '/category',

@@ -41,19 +41,20 @@ export class BookCreateComponent implements OnInit {
     let image = '';
     let description = '';
     let author = '';
-    let category = '1';
+    let category = '';
 
     if (this.editMode) {
-      this.bookService.getBookDetail(this.id).subscribe((res) => {
+      this.bookService.getById(this.id).subscribe((res) => {
+        console.log(res);
         this.book = res;
 
-        title = res.title.toString();
-        price = parseInt(res.price.toString());
-        quantity = parseInt(res.quantity.toString());
-        image = res.image.toString();
-        description = res.description.toString();
-        author = res.author.toString();
-        category = res.category._id.toString();
+        title = res.title;
+        price = res.price;
+        quantity = res.quantity;
+        image = res.image;
+        description = res.description;
+        author = res.author;
+        category = res.category._id;
 
         this.bookForm = new FormGroup({
           title: new FormControl(title, Validators.required),
@@ -89,9 +90,6 @@ export class BookCreateComponent implements OnInit {
   onSubmit() {
     const formData = this.bookForm.value;
     console.log(formData);
-    const category = this.categories.filter(
-      (category) => category._id === formData.category
-    );
 
     if (this.editMode) {
       const bookUpdate: IBookCreate = {
@@ -101,8 +99,10 @@ export class BookCreateComponent implements OnInit {
         description: formData.description,
         quantity: parseInt(formData.quantity),
         author: formData.author,
-        category: category[0],
+        category: formData.category,
       };
+
+      console.log(bookUpdate);
 
       this.bookService.updateBook(this.id, bookUpdate).subscribe((res) => {
         this.router.navigate(['books/management/book-list']);
@@ -115,7 +115,7 @@ export class BookCreateComponent implements OnInit {
         description: formData.description,
         quantity: parseInt(formData.quantity),
         author: formData.author,
-        category: category[0],
+        category: formData.category,
       };
 
       this.bookService.createBook(bookCreate).subscribe((res) => {

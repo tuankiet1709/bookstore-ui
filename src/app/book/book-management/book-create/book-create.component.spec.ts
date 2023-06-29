@@ -20,7 +20,7 @@ describe('BookCreateComponent', () => {
   let router: Router;
 
   const bookService = {
-    getBookDetail: () => {
+    getById: () => {
       return of({
         id: 3,
         title: 'Book 3',

@@ -112,18 +112,16 @@ export class CartService {
 
     const itemInCart = items.find((_item) => _item.id === item.id);
     if (itemInCart) {
-      this.bookService
-        .getBookDetail(itemInCart.id.toString())
-        .subscribe((res) => {
-          if (itemInCart.quantity + 1 < res.quantity) {
-            itemInCart.quantity += 1;
-            this.addQuantity(itemInCart).subscribe((res) => {
-              console.log('add item successfully');
-              this.addAmount();
-              this.addTotal(item);
-            });
-          }
-        });
+      this.bookService.getById(itemInCart.id.toString()).subscribe((res) => {
+        if (itemInCart.quantity + 1 < res.quantity) {
+          itemInCart.quantity += 1;
+          this.addQuantity(itemInCart).subscribe((res) => {
+            console.log('add item successfully');
+            this.addAmount();
+            this.addTotal(item);
+          });
+        }
+      });
     } else {
       this.post(item).subscribe((res) => {
         console.log('add to cart successfully');
