@@ -56,7 +56,7 @@
 
       <div class="mb-3 form-floating">
         <select formControlName="category" class="form-select custom-select">
-          <option *ngFor="let category of categories" [value]="category.id">
+          <option *ngFor="let category of categories" [value]="category._id">
             {{ category.name }}
           </option>
         </select>

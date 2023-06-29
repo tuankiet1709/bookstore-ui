@@ -53,7 +53,7 @@ export class BookCreateComponent implements OnInit {
         image = res.image.toString();
         description = res.description.toString();
         author = res.author.toString();
-        category = res.category.id.toString();
+        category = res.category._id.toString();
 
         this.bookForm = new FormGroup({
           title: new FormControl(title, Validators.required),
@@ -90,7 +90,7 @@ export class BookCreateComponent implements OnInit {
     const formData = this.bookForm.value;
     console.log(formData);
     const category = this.categories.filter(
-      (category) => category.id === formData.category
+      (category) => category._id === formData.category
     );
 
     if (this.editMode) {

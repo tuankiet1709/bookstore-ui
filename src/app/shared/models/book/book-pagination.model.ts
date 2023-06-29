@@ -1,5 +1,4 @@
 export default interface IQueryBookModel {
-  id: string;
   search: string;
   sortColumn: string;
   sortBy: number;

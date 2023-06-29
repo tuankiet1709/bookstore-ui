@@ -3,6 +3,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { BookModel, CategoryModel } from 'src/app/shared/models';
 import IQueryBookModel from 'src/app/shared/models/book/book-pagination.model';
+import { BookGetResponse } from 'src/app/shared/models/book/book-response.model';
 import { BookService, CategoryService } from 'src/app/shared/services';
 
 @Component({
@@ -14,7 +15,7 @@ export class BookListAdminComponent implements OnInit {
   books: BookModel[];
   categories: CategoryModel[];
   query = {} as IQueryBookModel;
-  p: number = 1;
+  page: number = 1;
   limit: number = 6;
   total: number = 0;
   search: string = '';
@@ -47,11 +48,14 @@ export class BookListAdminComponent implements OnInit {
 
   getBooks() {
     this.query.limit = this.limit;
-    this.query.page = this.p;
+    this.query.page = this.page;
     this.query.search = this.search;
-    this.bookService.getBook().subscribe((response: BookModel[]) => {
-      this.books = response;
-    });
+    this.bookService
+      .getBook(this.limit, this.page, this.search)
+      .subscribe((response: BookGetResponse) => {
+        this.books = response.items;
+        this.total = response.totalItems;
+      });
   }
 
   getCategories() {
@@ -72,5 +76,10 @@ export class BookListAdminComponent implements OnInit {
 
   onNewBook() {
     this.router.navigate(['books/management/book-create']);
+  }
+
+  pageChangeEvent(event: number) {
+    this.page = event;
+    this.getBooks();
   }
 }

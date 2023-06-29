@@ -3,6 +3,7 @@ import { BookModel } from './../../shared/models/book/book.model';
 import { Component, OnInit } from '@angular/core';
 import { CartService } from 'src/app/shared/services';
 import { CartItemModel } from 'src/app/shared/models';
+import { BookGetResponse } from 'src/app/shared/models/book/book-response.model';
 
 const ROWS_HEIGHT: { [id: number]: number } = {
   1: 500,
@@ -17,11 +18,16 @@ const ROWS_HEIGHT: { [id: number]: number } = {
   styleUrls: ['./book-list.component.scss'],
 })
 export class BookListComponent implements OnInit {
+  page: number = 1;
+  limit: number = 12;
+  total: number = 0;
+  search: String = '';
+
   cols = 4;
   rowHeight: number = ROWS_HEIGHT[this.cols];
   books: BookModel[] = [];
   bookDisplay: BookModel[] = [];
-  category: string | undefined;
+  category: string | undefined = 'abc';
 
   constructor(
     private bookService: BookService,
@@ -33,16 +39,26 @@ export class BookListComponent implements OnInit {
   }
 
   getBooks() {
-    this.bookService.getBook().subscribe((response: BookModel[]) => {
-      this.books = response;
-      this.bookDisplay = response;
-    });
+    this.bookService
+      .getBook(this.limit, this.page, this.search)
+      .subscribe((response: BookGetResponse) => {
+        this.books = response.items;
+        this.bookDisplay = response.items;
+        this.total = response.totalItems;
+      });
   }
 
   onShowCategory(newCategory: string): void {
-    this.bookDisplay = this.books.filter((book) => {
-      return book.category.id.toString() == newCategory.toString();
-    });
+    if (this.category !== newCategory) {
+      this.category = newCategory;
+      this.bookService
+        .getBookByCategory(newCategory)
+        .subscribe((response: BookGetResponse) => {
+          this.books = response.items;
+          this.bookDisplay = response.items;
+          this.total = response.totalItems;
+        });
+    }
   }
 
   onAddToCart(book: BookModel): void {
@@ -55,5 +71,10 @@ export class BookListComponent implements OnInit {
     };
 
     this.cartService.addToCart(cartItem);
+  }
+
+  pageChangeEvent(event: any) {
+    this.page = event;
+    this.getBooks();
   }
 }

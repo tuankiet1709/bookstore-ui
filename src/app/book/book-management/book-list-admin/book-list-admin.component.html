@@ -38,7 +38,12 @@
     </thead>
     <tbody>
       <tr
-        *ngFor="let book of books; let i = index"
+        *ngFor="
+          let book of books
+            | paginate
+              : { itemsPerPage: 6, currentPage: page, totalItems: total };
+          let i = index
+        "
         data-bs-toggle="modal"
         data-bs-target="#exampleModal"
       >
@@ -68,5 +73,8 @@
     </tbody>
   </table>
 
-  <!-- <pagination-controls (pageChange)="pageChangeEvent($event)" class="page text-black"></pagination-controls> -->
+  <pagination-controls
+    (pageChange)="pageChangeEvent($event)"
+    class="page text-black"
+  ></pagination-controls>
 </div>

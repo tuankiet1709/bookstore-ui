@@ -15,15 +15,15 @@ describe('BookFilterComponent', () => {
     getCategories: () => {
       return of([
         {
-          id: '1',
+          _id: '1',
           name: 'Drama',
         },
         {
-          id: '2',
+          _id: '2',
           name: 'Comedy',
         },
         {
-          id: '3',
+          _id: '3',
           name: 'Sport',
         },
       ]);
@@ -51,15 +51,15 @@ describe('BookFilterComponent', () => {
   it('should get Categories', () => {
     const expectedCategories = [
       {
-        id: '1',
+        _id: '1',
         name: 'Drama',
       },
       {
-        id: '2',
+        _id: '2',
         name: 'Comedy',
       },
       {
-        id: '3',
+        _id: '3',
         name: 'Sport',
       },
     ];
