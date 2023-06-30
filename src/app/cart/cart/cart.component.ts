@@ -12,7 +12,7 @@ import { CartService } from 'src/app/shared/services';
 export class CartComponent implements OnInit {
   cart: CartItemModel[] = [];
   displayedColumns: string[] = [
-    'product',
+    'productImage',
     'name',
     'price',
     'quantity',

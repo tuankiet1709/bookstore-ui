@@ -4,6 +4,7 @@ import { Component, OnInit } from '@angular/core';
 import { CartService } from 'src/app/shared/services';
 import { CartItemModel } from 'src/app/shared/models';
 import { BookGetResponse } from 'src/app/shared/models/book/book-response.model';
+import { ActivatedRoute } from '@angular/router';
 
 const ROWS_HEIGHT: { [id: number]: number } = {
   1: 500,
@@ -31,11 +32,18 @@ export class BookListComponent implements OnInit {
 
   constructor(
     private bookService: BookService,
-    private cartService: CartService
+    private cartService: CartService,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
     this.getBooks();
+
+    this.route.queryParams.subscribe((params) => {
+      console.log(params['search']);
+      this.search = params['search'] ?? '';
+      this.getBooks();
+    });
   }
 
   getBooks() {
@@ -63,11 +71,12 @@ export class BookListComponent implements OnInit {
 
   onAddToCart(book: BookModel): void {
     const cartItem: CartItemModel = {
-      product: book.image,
+      productImage: book.image,
       name: book.title,
       price: book.price,
       quantity: 1,
-      id: book.id,
+      productId: book.id.toString(),
+      id: '1',
     };
 
     this.cartService.addToCart(cartItem);

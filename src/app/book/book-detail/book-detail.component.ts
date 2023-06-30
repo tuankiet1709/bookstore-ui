@@ -28,11 +28,12 @@ export class BookDetailComponent implements OnInit {
 
   onAddToCart(): void {
     this.cartService.addToCart({
-      product: this.book.image,
+      productImage: this.book.image,
       name: this.book.title,
       price: this.book.price,
       quantity: 1,
-      id: this.book.id,
+      productId: this.book.id.toString(),
+      id: '1',
     });
   }
 }

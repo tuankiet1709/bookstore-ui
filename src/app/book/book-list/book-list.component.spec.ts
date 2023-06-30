@@ -86,7 +86,7 @@ describe('BookListComponent', () => {
     const book = mockBooks.items[0];
     component.onAddToCart(book);
     expect(cartService.addToCart).toHaveBeenCalledWith({
-      product: book.image,
+      productImage: book.image,
       name: book.title,
       price: book.price,
       quantity: 1,

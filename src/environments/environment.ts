@@ -22,7 +22,10 @@ export const environment = {
     get: baseUrl + '/category',
   },
   cart: {
-    get: baseUrl + '/api/carts',
+    get: baseUrl + '/cart?email={email}',
+    addToCart: baseUrl + '/cart',
+    updateQuantity: baseUrl + '/cart/{id}',
+    removeFromCart: baseUrl + '/cart/{id}',
   },
 };
 

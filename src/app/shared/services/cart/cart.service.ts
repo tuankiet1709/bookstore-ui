@@ -2,8 +2,10 @@ import { Injectable } from '@angular/core';
 import { CartItemModel } from '../../models';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, take, pipe } from 'rxjs';
 import { BookService } from '../book/book.service';
+import { AuthService } from '../auth/auth.service';
+import { CartCreateModel } from '../../models/cart/cart-create.model';
 
 @Injectable({
   providedIn: 'root',
@@ -18,9 +20,11 @@ export class CartService {
 
   constructor(
     private httpClient: HttpClient,
-    private bookService: BookService
+    private bookService: BookService,
+    private authService: AuthService
   ) {
-    this.get().subscribe((res) => {
+    const email = this.authService.getEmail();
+    this.get(email).subscribe((res) => {
       this.cartListener.next(res);
       this.setAmount(res);
       this.setTotal(res);
@@ -91,16 +95,21 @@ export class CartService {
     this.cartAmountListener.next(this.amount);
   }
 
-  get(): Observable<CartItemModel[]> {
-    return this.httpClient.get<CartItemModel[]>(environment.cart.get);
+  get(email: string | null): Observable<CartItemModel[]> {
+    const url = environment.cart.get.replace('{email}', email ?? '');
+    return this.httpClient.get<CartItemModel[]>(url);
   }
 
-  post(item: CartItemModel) {
-    return this.httpClient.post(environment.cart.get, item);
+  post(item: CartCreateModel) {
+    return this.httpClient.post(environment.cart.addToCart, item);
   }
 
   addQuantity(item: CartItemModel) {
-    return this.httpClient.put(environment.cart.get + '/' + item.id, item);
+    const url = environment.cart.updateQuantity.replace(
+      '{id}',
+      item.id.toString()
+    );
+    return this.httpClient.put(url, item);
   }
 
   delete(item: CartItemModel) {
@@ -110,7 +119,7 @@ export class CartService {
   addToCart(item: CartItemModel): void {
     const items = [...this.cart];
 
-    const itemInCart = items.find((_item) => _item.id === item.id);
+    const itemInCart = items.find((_item) => _item.productId === item.id);
     if (itemInCart) {
       this.bookService.getById(itemInCart.id.toString()).subscribe((res) => {
         if (itemInCart.quantity + 1 < res.quantity) {
@@ -123,7 +132,11 @@ export class CartService {
         }
       });
     } else {
-      this.post(item).subscribe((res) => {
+      const newItem: CartCreateModel = {
+        product: item.id,
+        quantity: 1,
+      };
+      this.post(newItem).subscribe((res) => {
         console.log('add to cart successfully');
         items.push(item);
         this.addAmount();

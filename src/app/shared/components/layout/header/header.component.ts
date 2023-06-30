@@ -64,6 +64,13 @@ export class HeaderComponent implements OnInit {
     });
   }
 
+  onSubmit() {
+    const formData = this.searchForm.value;
+    this.router.navigate(['/books'], {
+      queryParams: { search: formData['search'] },
+    });
+  }
+
   onLogout() {
     this.authService.Logout();
     this.router.navigate(['/books']);

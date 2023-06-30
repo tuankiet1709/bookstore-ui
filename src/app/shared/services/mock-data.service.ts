@@ -39,6 +39,7 @@ export class InMemoryDataService extends InMemoryDbService {
             expireAt: '86400',
             name: user.name,
             role: user.role,
+            email: user.email,
           },
           status: 200,
         };

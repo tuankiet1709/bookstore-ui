@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
+import { debounce, timer } from 'rxjs';
 import { BookModel, CategoryModel } from 'src/app/shared/models';
 import IQueryBookModel from 'src/app/shared/models/book/book-pagination.model';
 import { BookGetResponse } from 'src/app/shared/models/book/book-response.model';
@@ -40,10 +41,14 @@ export class BookListAdminComponent implements OnInit {
       search: new FormControl(search),
     });
 
-    this.searchForm.valueChanges.subscribe((form) => {
-      this.search = form.search;
-      this.getBooks();
-    });
+    this.searchForm.valueChanges
+      .pipe(debounce(() => timer(1000)))
+      .subscribe((form) => {
+        this.search = form.search;
+        this.getBooks();
+      });
+
+    this.getBooks();
   }
 
   getBooks() {

@@ -43,8 +43,10 @@ export class LoginComponent implements OnInit {
           res.token,
           res.expireAt,
           res.name,
-          res.role
+          res.role,
+          form.value.emailLogin
         );
+        this.authService.setEmailListener(form.value.emailLogin);
         if (res.role == 'admin') {
           this.router.navigate(['/books/management/book-list']);
         } else {
