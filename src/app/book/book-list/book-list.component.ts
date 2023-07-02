@@ -22,7 +22,7 @@ export class BookListComponent implements OnInit {
   page: number = 1;
   limit: number = 12;
   total: number = 0;
-  search: String = '';
+  search: string = '';
 
   cols = 4;
   rowHeight: number = ROWS_HEIGHT[this.cols];
@@ -70,6 +70,7 @@ export class BookListComponent implements OnInit {
   }
 
   onAddToCart(book: BookModel): void {
+    console.log('list book: ', book);
     const cartItem: CartItemModel = {
       productImage: book.image,
       name: book.title,
@@ -78,6 +79,7 @@ export class BookListComponent implements OnInit {
       productId: book.id.toString(),
       id: '1',
     };
+    console.log('list book 2: ', cartItem);
 
     this.cartService.addToCart(cartItem);
   }

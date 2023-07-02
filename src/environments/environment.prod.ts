@@ -7,13 +7,22 @@ export const environment = {
     register: baseUrl + '/api/users/register',
   },
   book: {
-    get: baseUrl + '/api/books',
-    getDetail: baseUrl + '/api/books/{id}',
+    get: baseUrl + '/book?limit={limit}&page={page}&search={search}',
+    getDetail: baseUrl + '/book/{id}',
+    getByCategory: baseUrl + '/book?categoryId={categoryId}',
+    createBook: baseUrl + '/book',
+    editBook: baseUrl + '/book/{id}',
+    deleteBook: baseUrl + '/book/{id}',
   },
   category: {
-    get: baseUrl + '/api/categories',
+    get: baseUrl + '/category',
   },
   cart: {
-    get: baseUrl + '/api/carts',
+    get: baseUrl + '/cart?email={email}',
+    addToCart: baseUrl + '/cart',
+    updateQuantity: baseUrl + '/cart/{id}',
+    removeFromCart: baseUrl + '/cart/{id}',
+    clearCart: baseUrl + '/cart/clear?email={email}',
+    checkout: baseUrl + '/cart/checkout?email={email}',
   },
 };

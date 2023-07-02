@@ -31,6 +31,7 @@ export class CartComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.cartTotal = this.cartService.getTotal();
     this.cartTotalSub = this.cartService
       .getTotalListener()
       .subscribe((total) => {
@@ -57,7 +58,11 @@ export class CartComponent implements OnInit {
     this.cartService.removeFromCart(item);
   }
 
-  onCheckout() {}
+  onCheckout() {
+    this.cartService.checkout();
+  }
 
-  onClearCart() {}
+  onClearCart() {
+    this.cartService.clearAll();
+  }
 }

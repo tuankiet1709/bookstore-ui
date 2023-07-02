@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
 import { CartItemModel } from '../../models';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
-import { BehaviorSubject, Observable, take, pipe } from 'rxjs';
+import { BehaviorSubject, Observable, take, pipe, tap } from 'rxjs';
 import { BookService } from '../book/book.service';
 import { AuthService } from '../auth/auth.service';
 import { CartCreateModel } from '../../models/cart/cart-create.model';
+import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 
 @Injectable({
   providedIn: 'root',
@@ -17,18 +18,26 @@ export class CartService {
   private cart: CartItemModel[] = [];
   private total: number = 0;
   private amount: number = 0;
+  private email: string = this.authService.getEmail() ?? '';
 
   constructor(
     private httpClient: HttpClient,
     private bookService: BookService,
-    private authService: AuthService
+    private authService: AuthService,
+    private snackbar: MatSnackBar
   ) {
-    const email = this.authService.getEmail();
-    this.get(email).subscribe((res) => {
-      this.cartListener.next(res);
-      this.setAmount(res);
-      this.setTotal(res);
-    });
+    this.get(this.email)
+      .pipe(
+        tap((res) => {
+          console.log(res);
+        })
+      )
+      .subscribe((res) => {
+        this.cart = res;
+        this.cartListener.next(res);
+        this.setAmount(res);
+        this.setTotal(res);
+      });
   }
 
   getCart() {
@@ -57,7 +66,7 @@ export class CartService {
 
   setTotal(items: CartItemModel[]): void {
     const total = items
-      .map((item) => item.quantity)
+      .map((item) => item.price * item.quantity)
       .reduce((prev, current) => prev + current, 0);
 
     this.total = total;
@@ -66,7 +75,7 @@ export class CartService {
 
   setAmount(items: CartItemModel[]): void {
     const amount = items
-      .map((item) => item.price * item.quantity)
+      .map((item) => item.quantity)
       .reduce((prev, current) => prev + current, 0);
 
     this.amount = amount;
@@ -104,37 +113,43 @@ export class CartService {
     return this.httpClient.post(environment.cart.addToCart, item);
   }
 
-  addQuantity(item: CartItemModel) {
-    const url = environment.cart.updateQuantity.replace(
-      '{id}',
-      item.id.toString()
-    );
-    return this.httpClient.put(url, item);
+  updateQuantity(id: string, quantity: number) {
+    const url = environment.cart.updateQuantity.replace('{id}', id);
+    return this.httpClient.put(url, { quantity: quantity });
   }
 
-  delete(item: CartItemModel) {
-    return this.httpClient.delete(environment.cart.get + '/' + item.id);
+  delete(id: string) {
+    const url = environment.cart.removeFromCart.replace('{id}', id);
+    return this.httpClient.delete(url);
   }
 
   addToCart(item: CartItemModel): void {
     const items = [...this.cart];
 
-    const itemInCart = items.find((_item) => _item.productId === item.id);
+    const itemInCart = items.find(
+      (_item) => _item.productId === item.productId
+    );
+
     if (itemInCart) {
-      this.bookService.getById(itemInCart.id.toString()).subscribe((res) => {
-        if (itemInCart.quantity + 1 < res.quantity) {
-          itemInCart.quantity += 1;
-          this.addQuantity(itemInCart).subscribe((res) => {
-            console.log('add item successfully');
-            this.addAmount();
-            this.addTotal(item);
-          });
-        }
-      });
+      this.bookService
+        .getById(itemInCart.productId.toString())
+        .subscribe((res) => {
+          if (itemInCart.quantity + 1 < res.quantity) {
+            itemInCart.quantity += 1;
+            this.updateQuantity(itemInCart.id, itemInCart.quantity).subscribe(
+              (res) => {
+                console.log('add item successfully');
+                this.addAmount();
+                this.addTotal(item);
+              }
+            );
+          }
+        });
     } else {
       const newItem: CartCreateModel = {
-        product: item.id,
+        product: item.productId,
         quantity: 1,
+        user: this.email,
       };
       this.post(newItem).subscribe((res) => {
         console.log('add to cart successfully');
@@ -146,47 +161,56 @@ export class CartService {
 
     this.cart = items;
     this.cartListener.next(items);
-    console.log(this.cart);
   }
 
-  removeFromCart(item: CartItemModel, updateCart = true): CartItemModel[] {
-    this.delete(item).subscribe((res) => {
-      this.removeAmount();
-      this.removeTotal(item);
-    });
+  removeFromCart(item: CartItemModel): CartItemModel[] {
+    this.delete(item.id).subscribe((res) => {});
     const filteredItems = this.cart.filter((_item) => {
       return _item.id !== item.id;
     });
 
-    if (updateCart) {
-      this.cart = filteredItems;
-      this.cartListener.next(filteredItems);
-    }
+    this.setAmount(filteredItems);
+    this.setTotal(filteredItems);
+    this.cart = filteredItems;
+    this.cartListener.next(filteredItems);
 
     return filteredItems;
   }
 
   removeQuantity(item: CartItemModel): void {
-    let itemForRemoval!: CartItemModel;
-
     let filteredItems = this.cart.map((_item) => {
-      if (_item.id === item.id) {
+      if (_item.productId === item.productId && item.quantity - 1 > 0) {
         _item.quantity--;
-        this.removeAmount();
-        this.removeTotal(_item);
-        if (_item.quantity === 0) {
-          itemForRemoval = _item;
-        }
+        this.updateQuantity(_item.id, _item.quantity).subscribe(() => {
+          console.log('update successfully');
+          this.removeAmount();
+          this.removeTotal(_item);
+        });
       }
-
       return _item;
     });
 
-    if (itemForRemoval) {
-      filteredItems = this.removeFromCart(itemForRemoval, false);
-    }
-
     this.cart = filteredItems;
     this.cartListener.next(filteredItems);
+  }
+
+  checkout() {
+    const url = environment.cart.checkout.replace('{email}', this.email ?? '');
+    this.httpClient.post(url, null).subscribe((res) => {
+      if (res) {
+        this.cart = [];
+        this.cartListener.next([]);
+      }
+    });
+  }
+
+  clearAll() {
+    const url = environment.cart.clearCart.replace('{email}', this.email ?? '');
+    this.httpClient.delete(url).subscribe((res) => {
+      if (res) {
+        this.cart = [];
+        this.cartListener.next([]);
+      }
+    });
   }
 }

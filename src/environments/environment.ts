@@ -26,6 +26,8 @@ export const environment = {
     addToCart: baseUrl + '/cart',
     updateQuantity: baseUrl + '/cart/{id}',
     removeFromCart: baseUrl + '/cart/{id}',
+    clearCart: baseUrl + '/cart/clear?email={email}',
+    checkout: baseUrl + '/cart/checkout?email={email}',
   },
 };
 
