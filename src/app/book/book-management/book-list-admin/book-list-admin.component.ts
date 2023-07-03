@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
-import { debounce, timer } from 'rxjs';
+import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { BookModel, CategoryModel } from 'src/app/shared/models';
 import IQueryBookModel from 'src/app/shared/models/book/book-pagination.model';
 import { BookGetResponse } from 'src/app/shared/models/book/book-response.model';
@@ -12,7 +12,7 @@ import { BookService, CategoryService } from 'src/app/shared/services';
   templateUrl: './book-list-admin.component.html',
   styleUrls: ['./book-list-admin.component.scss'],
 })
-export class BookListAdminComponent implements OnInit {
+export class BookListAdminComponent implements OnInit, OnDestroy {
   books: BookModel[];
   categories: CategoryModel[];
   query = {} as IQueryBookModel;
@@ -21,6 +21,7 @@ export class BookListAdminComponent implements OnInit {
   total: number = 0;
   search: string = '';
   searchForm: FormGroup;
+  $destroy = new Subject();
 
   constructor(
     private bookService: BookService,
@@ -42,7 +43,11 @@ export class BookListAdminComponent implements OnInit {
     });
 
     this.searchForm.valueChanges
-      .pipe(debounce(() => timer(1000)))
+      .pipe(
+        distinctUntilChanged(),
+        debounceTime(1000),
+        takeUntil(this.$destroy)
+      )
       .subscribe((form) => {
         this.search = form.search;
         this.getBooks();
@@ -86,5 +91,9 @@ export class BookListAdminComponent implements OnInit {
   pageChangeEvent(event: number) {
     this.page = event;
     this.getBooks();
+  }
+
+  ngOnDestroy(): void {
+    this.$destroy.complete();
   }
 }

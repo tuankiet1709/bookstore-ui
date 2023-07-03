@@ -120,7 +120,6 @@ export class AuthService {
     this.authStatusListener.next(isAuth);
     this.nameUpdated.next(name);
     this.roleUpdated.next(role);
-    this.emailUpdated.next(email);
   }
 
   existsToken() {

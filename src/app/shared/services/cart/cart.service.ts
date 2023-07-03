@@ -23,8 +23,7 @@ export class CartService {
   constructor(
     private httpClient: HttpClient,
     private bookService: BookService,
-    private authService: AuthService,
-    private snackbar: MatSnackBar
+    private authService: AuthService
   ) {
     this.get(this.email)
       .pipe(
@@ -136,13 +135,14 @@ export class CartService {
         .subscribe((res) => {
           if (itemInCart.quantity + 1 < res.quantity) {
             itemInCart.quantity += 1;
-            this.updateQuantity(itemInCart.id, itemInCart.quantity).subscribe(
-              (res) => {
-                console.log('add item successfully');
-                this.addAmount();
-                this.addTotal(item);
-              }
-            );
+            this.updateQuantity(
+              String(itemInCart.id),
+              itemInCart.quantity
+            ).subscribe((res) => {
+              console.log('add item successfully');
+              this.addAmount();
+              this.addTotal(item);
+            });
           }
         });
     } else {
@@ -151,11 +151,19 @@ export class CartService {
         quantity: 1,
         user: this.email,
       };
-      this.post(newItem).subscribe((res) => {
-        console.log('add to cart successfully');
-        items.push(item);
+      this.post(newItem).subscribe((res: any) => {
+        const response: CartItemModel = {
+          id: res._id,
+          productId: res.product._id,
+          productImage: res.product.image,
+          name: res.product.title,
+          price: res.product.price,
+          quantity: res.quantity,
+        };
+        items.push(response);
         this.addAmount();
-        this.addTotal(item);
+        this.addTotal(response);
+        console.log('Add to cart successfully');
       });
     }
 
@@ -164,7 +172,7 @@ export class CartService {
   }
 
   removeFromCart(item: CartItemModel): CartItemModel[] {
-    this.delete(item.id).subscribe((res) => {});
+    this.delete(String(item.id)).subscribe((res) => {});
     const filteredItems = this.cart.filter((_item) => {
       return _item.id !== item.id;
     });
@@ -181,7 +189,7 @@ export class CartService {
     let filteredItems = this.cart.map((_item) => {
       if (_item.productId === item.productId && item.quantity - 1 > 0) {
         _item.quantity--;
-        this.updateQuantity(_item.id, _item.quantity).subscribe(() => {
+        this.updateQuantity(String(_item.id), _item.quantity).subscribe(() => {
           console.log('update successfully');
           this.removeAmount();
           this.removeTotal(_item);

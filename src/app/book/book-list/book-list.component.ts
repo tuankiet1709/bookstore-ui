@@ -70,16 +70,13 @@ export class BookListComponent implements OnInit {
   }
 
   onAddToCart(book: BookModel): void {
-    console.log('list book: ', book);
     const cartItem: CartItemModel = {
       productImage: book.image,
       name: book.title,
       price: book.price,
       quantity: 1,
       productId: book.id.toString(),
-      id: '1',
     };
-    console.log('list book 2: ', cartItem);
 
     this.cartService.addToCart(cartItem);
   }
