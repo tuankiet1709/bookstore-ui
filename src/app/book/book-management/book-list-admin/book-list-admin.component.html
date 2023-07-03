@@ -8,10 +8,12 @@
     <div class="d-flex align-items-center w-ld ms-auto">
       <form [formGroup]="searchForm">
         <div class="input-group">
-          <input class="form-control" id="search" formControlName="search" />
-          <span class="border p-2 pointer btn btn-dark">
-            <i class="bi bi-search"></i>
-          </span>
+          <input
+            class="form-control"
+            id="search"
+            formControlName="search"
+            placeholder="Search your book ..."
+          />
         </div>
       </form>
     </div>
@@ -38,7 +40,12 @@
     </thead>
     <tbody>
       <tr
-        *ngFor="let book of books; let i = index"
+        *ngFor="
+          let book of books
+            | paginate
+              : { itemsPerPage: 6, currentPage: page, totalItems: total };
+          let i = index
+        "
         data-bs-toggle="modal"
         data-bs-target="#exampleModal"
       >
@@ -68,5 +75,8 @@
     </tbody>
   </table>
 
-  <!-- <pagination-controls (pageChange)="pageChangeEvent($event)" class="page text-black"></pagination-controls> -->
+  <pagination-controls
+    (pageChange)="pageChangeEvent($event)"
+    class="page text-black"
+  ></pagination-controls>
 </div>

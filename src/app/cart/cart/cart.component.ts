@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { Subscription } from 'rxjs';
+import { Subscription, Subject, takeUntil } from 'rxjs';
 import { CartItemModel } from 'src/app/shared/models';
 import { CartService } from 'src/app/shared/services';
 
@@ -9,10 +9,10 @@ import { CartService } from 'src/app/shared/services';
   templateUrl: './cart.component.html',
   styleUrls: ['./cart.component.scss'],
 })
-export class CartComponent implements OnInit {
+export class CartComponent implements OnInit, OnDestroy {
   cart: CartItemModel[] = [];
   displayedColumns: string[] = [
-    'product',
+    'productImage',
     'name',
     'price',
     'quantity',
@@ -24,21 +24,22 @@ export class CartComponent implements OnInit {
   cartSubscription: Subscription;
   cartTotalSub: Subscription;
   cartTotal: number;
+  $destroy = new Subject();
 
-  constructor(
-    private cartService: CartService,
-    private _snackBar: MatSnackBar
-  ) {}
+  constructor(private cartService: CartService) {}
 
   ngOnInit(): void {
+    this.cartTotal = this.cartService.getTotal();
     this.cartTotalSub = this.cartService
       .getTotalListener()
+      .pipe(takeUntil(this.$destroy))
       .subscribe((total) => {
         this.cartTotal = total;
       });
 
     this.cartSubscription = this.cartService
       .getCartListener()
+      .pipe(takeUntil(this.$destroy))
       .subscribe((_cart: CartItemModel[]) => {
         this.cart = _cart;
         this.dataSource = _cart;
@@ -57,7 +58,15 @@ export class CartComponent implements OnInit {
     this.cartService.removeFromCart(item);
   }
 
-  onCheckout() {}
+  onCheckout() {
+    this.cartService.checkout();
+  }
 
-  onClearCart() {}
+  onClearCart() {
+    this.cartService.clearAll();
+  }
+
+  ngOnDestroy(): void {
+    this.$destroy.complete();
+  }
 }

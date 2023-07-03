@@ -12,7 +12,14 @@
         [cols]="cols"
         [rowHeight]="rowHeight"
       >
-        <mat-grid-tile *ngFor="let book of bookDisplay">
+        <mat-grid-tile
+          *ngFor="
+            let book of bookDisplay
+              | paginate
+                : { itemsPerPage: 12, currentPage: page, totalItems: total };
+            let i = index
+          "
+        >
           <app-book-item
             (addToCart)="onAddToCart($event)"
             [book]="book"
@@ -23,4 +30,9 @@
       </mat-grid-list>
     </div>
   </div>
+
+  <pagination-controls
+    (pageChange)="pageChangeEvent($event)"
+    class="page"
+  ></pagination-controls>
 </div>

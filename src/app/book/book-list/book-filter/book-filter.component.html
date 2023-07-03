@@ -3,11 +3,14 @@
     <mat-panel-title class="text-center"> CATEGORIES </mat-panel-title>
   </mat-expansion-panel-header>
   <mat-selection-list [multiple]="false">
+    <mat-list-option>
+      <button class="btn" (click)="onShowCategory('')">All</button>
+    </mat-list-option>
     <mat-list-option
       *ngFor="let category of categories"
       [value]="category.name"
     >
-      <button class="btn" (click)="onShowCategory(category.id)">
+      <button class="btn" (click)="onShowCategory(category._id)">
         {{ category.name }}
       </button>
     </mat-list-option>

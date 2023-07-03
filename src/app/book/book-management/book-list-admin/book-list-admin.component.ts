@@ -1,8 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { BookModel, CategoryModel } from 'src/app/shared/models';
 import IQueryBookModel from 'src/app/shared/models/book/book-pagination.model';
+import { BookGetResponse } from 'src/app/shared/models/book/book-response.model';
 import { BookService, CategoryService } from 'src/app/shared/services';
 
 @Component({
@@ -10,15 +12,16 @@ import { BookService, CategoryService } from 'src/app/shared/services';
   templateUrl: './book-list-admin.component.html',
   styleUrls: ['./book-list-admin.component.scss'],
 })
-export class BookListAdminComponent implements OnInit {
+export class BookListAdminComponent implements OnInit, OnDestroy {
   books: BookModel[];
   categories: CategoryModel[];
   query = {} as IQueryBookModel;
-  p: number = 1;
+  page: number = 1;
   limit: number = 6;
   total: number = 0;
   search: string = '';
   searchForm: FormGroup;
+  $destroy = new Subject();
 
   constructor(
     private bookService: BookService,
@@ -39,19 +42,30 @@ export class BookListAdminComponent implements OnInit {
       search: new FormControl(search),
     });
 
-    this.searchForm.valueChanges.subscribe((form) => {
-      this.search = form.search;
-      this.getBooks();
-    });
+    this.searchForm.valueChanges
+      .pipe(
+        distinctUntilChanged(),
+        debounceTime(1000),
+        takeUntil(this.$destroy)
+      )
+      .subscribe((form) => {
+        this.search = form.search;
+        this.getBooks();
+      });
+
+    this.getBooks();
   }
 
   getBooks() {
     this.query.limit = this.limit;
-    this.query.page = this.p;
+    this.query.page = this.page;
     this.query.search = this.search;
-    this.bookService.getBook().subscribe((response: BookModel[]) => {
-      this.books = response;
-    });
+    this.bookService
+      .getBook(this.limit, this.page, this.search)
+      .subscribe((response: BookGetResponse) => {
+        this.books = response.items;
+        this.total = response.totalItems;
+      });
   }
 
   getCategories() {
@@ -72,5 +86,14 @@ export class BookListAdminComponent implements OnInit {
 
   onNewBook() {
     this.router.navigate(['books/management/book-create']);
+  }
+
+  pageChangeEvent(event: number) {
+    this.page = event;
+    this.getBooks();
+  }
+
+  ngOnDestroy(): void {
+    this.$destroy.complete();
   }
 }

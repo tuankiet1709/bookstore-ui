@@ -1,9 +1,12 @@
 import { Injectable } from '@angular/core';
 import { CartItemModel } from '../../models';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, take, pipe, tap } from 'rxjs';
 import { BookService } from '../book/book.service';
+import { AuthService } from '../auth/auth.service';
+import { CartCreateModel } from '../../models/cart/cart-create.model';
+import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 
 @Injectable({
   providedIn: 'root',
@@ -15,16 +18,25 @@ export class CartService {
   private cart: CartItemModel[] = [];
   private total: number = 0;
   private amount: number = 0;
+  private email: string = this.authService.getEmail() ?? '';
 
   constructor(
     private httpClient: HttpClient,
-    private bookService: BookService
+    private bookService: BookService,
+    private authService: AuthService
   ) {
-    this.get().subscribe((res) => {
-      this.cartListener.next(res);
-      this.setAmount(res);
-      this.setTotal(res);
-    });
+    this.get(this.email)
+      .pipe(
+        tap((res) => {
+          console.log(res);
+        })
+      )
+      .subscribe((res) => {
+        this.cart = res;
+        this.cartListener.next(res);
+        this.setAmount(res);
+        this.setTotal(res);
+      });
   }
 
   getCart() {
@@ -53,7 +65,7 @@ export class CartService {
 
   setTotal(items: CartItemModel[]): void {
     const total = items
-      .map((item) => item.quantity)
+      .map((item) => item.price * item.quantity)
       .reduce((prev, current) => prev + current, 0);
 
     this.total = total;
@@ -62,7 +74,7 @@ export class CartService {
 
   setAmount(items: CartItemModel[]): void {
     const amount = items
-      .map((item) => item.price * item.quantity)
+      .map((item) => item.quantity)
       .reduce((prev, current) => prev + current, 0);
 
     this.amount = amount;
@@ -91,33 +103,42 @@ export class CartService {
     this.cartAmountListener.next(this.amount);
   }
 
-  get(): Observable<CartItemModel[]> {
-    return this.httpClient.get<CartItemModel[]>(environment.cart.get);
+  get(email: string | null): Observable<CartItemModel[]> {
+    const url = environment.cart.get.replace('{email}', email ?? '');
+    return this.httpClient.get<CartItemModel[]>(url);
   }
 
-  post(item: CartItemModel) {
-    return this.httpClient.post(environment.cart.get, item);
+  post(item: CartCreateModel) {
+    return this.httpClient.post(environment.cart.addToCart, item);
   }
 
-  addQuantity(item: CartItemModel) {
-    return this.httpClient.put(environment.cart.get + '/' + item.id, item);
+  updateQuantity(id: string, quantity: number) {
+    const url = environment.cart.updateQuantity.replace('{id}', id);
+    return this.httpClient.put(url, { quantity: quantity });
   }
 
-  delete(item: CartItemModel) {
-    return this.httpClient.delete(environment.cart.get + '/' + item.id);
+  delete(id: string) {
+    const url = environment.cart.removeFromCart.replace('{id}', id);
+    return this.httpClient.delete(url);
   }
 
   addToCart(item: CartItemModel): void {
     const items = [...this.cart];
 
-    const itemInCart = items.find((_item) => _item.id === item.id);
+    const itemInCart = items.find(
+      (_item) => _item.productId === item.productId
+    );
+
     if (itemInCart) {
       this.bookService
-        .getBookDetail(itemInCart.id.toString())
+        .getById(itemInCart.productId.toString())
         .subscribe((res) => {
           if (itemInCart.quantity + 1 < res.quantity) {
             itemInCart.quantity += 1;
-            this.addQuantity(itemInCart).subscribe((res) => {
+            this.updateQuantity(
+              String(itemInCart.id),
+              itemInCart.quantity
+            ).subscribe((res) => {
               console.log('add item successfully');
               this.addAmount();
               this.addTotal(item);
@@ -125,57 +146,79 @@ export class CartService {
           }
         });
     } else {
-      this.post(item).subscribe((res) => {
-        console.log('add to cart successfully');
-        items.push(item);
+      const newItem: CartCreateModel = {
+        product: item.productId,
+        quantity: 1,
+        user: this.email,
+      };
+      this.post(newItem).subscribe((res: any) => {
+        const response: CartItemModel = {
+          id: res._id,
+          productId: res.product._id,
+          productImage: res.product.image,
+          name: res.product.title,
+          price: res.product.price,
+          quantity: res.quantity,
+        };
+        items.push(response);
         this.addAmount();
-        this.addTotal(item);
+        this.addTotal(response);
+        console.log('Add to cart successfully');
       });
     }
 
     this.cart = items;
     this.cartListener.next(items);
-    console.log(this.cart);
   }
 
-  removeFromCart(item: CartItemModel, updateCart = true): CartItemModel[] {
-    this.delete(item).subscribe((res) => {
-      this.removeAmount();
-      this.removeTotal(item);
-    });
+  removeFromCart(item: CartItemModel): CartItemModel[] {
+    this.delete(String(item.id)).subscribe((res) => {});
     const filteredItems = this.cart.filter((_item) => {
       return _item.id !== item.id;
     });
 
-    if (updateCart) {
-      this.cart = filteredItems;
-      this.cartListener.next(filteredItems);
-    }
+    this.setAmount(filteredItems);
+    this.setTotal(filteredItems);
+    this.cart = filteredItems;
+    this.cartListener.next(filteredItems);
 
     return filteredItems;
   }
 
   removeQuantity(item: CartItemModel): void {
-    let itemForRemoval!: CartItemModel;
-
     let filteredItems = this.cart.map((_item) => {
-      if (_item.id === item.id) {
+      if (_item.productId === item.productId && item.quantity - 1 > 0) {
         _item.quantity--;
-        this.removeAmount();
-        this.removeTotal(_item);
-        if (_item.quantity === 0) {
-          itemForRemoval = _item;
-        }
+        this.updateQuantity(String(_item.id), _item.quantity).subscribe(() => {
+          console.log('update successfully');
+          this.removeAmount();
+          this.removeTotal(_item);
+        });
       }
-
       return _item;
     });
 
-    if (itemForRemoval) {
-      filteredItems = this.removeFromCart(itemForRemoval, false);
-    }
-
     this.cart = filteredItems;
     this.cartListener.next(filteredItems);
+  }
+
+  checkout() {
+    const url = environment.cart.checkout.replace('{email}', this.email ?? '');
+    this.httpClient.post(url, null).subscribe((res) => {
+      if (res) {
+        this.cart = [];
+        this.cartListener.next([]);
+      }
+    });
+  }
+
+  clearAll() {
+    const url = environment.cart.clearCart.replace('{email}', this.email ?? '');
+    this.httpClient.delete(url).subscribe((res) => {
+      if (res) {
+        this.cart = [];
+        this.cartListener.next([]);
+      }
+    });
   }
 }

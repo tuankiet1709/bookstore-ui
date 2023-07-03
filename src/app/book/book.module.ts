@@ -18,6 +18,7 @@ import {
   CurrencyMaskConfig,
   CurrencyMaskModule,
 } from 'ng2-currency-mask';
+import { NgxPaginationModule } from 'ngx-pagination';
 
 export const CustomCurrencyMaskConfig: CurrencyMaskConfig = {
   align: 'left',
@@ -48,6 +49,7 @@ export const CustomCurrencyMaskConfig: CurrencyMaskConfig = {
       passThruUnknownUrl: true,
     }),
     CurrencyMaskModule,
+    NgxPaginationModule,
   ],
   providers: [
     CurrencyPipe,

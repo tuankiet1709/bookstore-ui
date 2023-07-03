@@ -11,7 +11,7 @@ describe('BookDetailComponent', () => {
   let fixture: ComponentFixture<BookDetailComponent>;
 
   const mockBookService = {
-    getBookDetail: () => {
+    getById: () => {
       return of({
         id: 1,
         title: 'Book 1',

@@ -20,7 +20,7 @@ export class BookDetailComponent implements OnInit {
   ngOnInit(): void {
     this.route.params.subscribe((params: Params) => {
       const id = params['id'];
-      this.bookService.getBookDetail(id).subscribe((response: BookModel) => {
+      this.bookService.getById(id).subscribe((response: BookModel) => {
         this.book = response;
       });
     });
@@ -28,11 +28,12 @@ export class BookDetailComponent implements OnInit {
 
   onAddToCart(): void {
     this.cartService.addToCart({
-      product: this.book.image,
+      productImage: this.book.image,
       name: this.book.title,
       price: this.book.price,
       quantity: 1,
-      id: this.book.id,
+      productId: this.book.id.toString(),
+      id: '1',
     });
   }
 }

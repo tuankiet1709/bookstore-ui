@@ -47,7 +47,7 @@ describe('BookListAdminComponent', () => {
         },
       ]);
     },
-    getBookDetail: () => {
+    getById: () => {
       return of({
         id: 3,
         title: 'Book 3',

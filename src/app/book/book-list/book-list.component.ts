@@ -3,6 +3,8 @@ import { BookModel } from './../../shared/models/book/book.model';
 import { Component, OnInit } from '@angular/core';
 import { CartService } from 'src/app/shared/services';
 import { CartItemModel } from 'src/app/shared/models';
+import { BookGetResponse } from 'src/app/shared/models/book/book-response.model';
+import { ActivatedRoute } from '@angular/router';
 
 const ROWS_HEIGHT: { [id: number]: number } = {
   1: 500,
@@ -17,43 +19,70 @@ const ROWS_HEIGHT: { [id: number]: number } = {
   styleUrls: ['./book-list.component.scss'],
 })
 export class BookListComponent implements OnInit {
+  page: number = 1;
+  limit: number = 12;
+  total: number = 0;
+  search: string = '';
+
   cols = 4;
   rowHeight: number = ROWS_HEIGHT[this.cols];
   books: BookModel[] = [];
   bookDisplay: BookModel[] = [];
-  category: string | undefined;
+  category: string | undefined = 'abc';
 
   constructor(
     private bookService: BookService,
-    private cartService: CartService
+    private cartService: CartService,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
     this.getBooks();
+
+    this.route.queryParams.subscribe((params) => {
+      console.log(params['search']);
+      this.search = params['search'] ?? '';
+      this.getBooks();
+    });
   }
 
   getBooks() {
-    this.bookService.getBook().subscribe((response: BookModel[]) => {
-      this.books = response;
-      this.bookDisplay = response;
-    });
+    this.bookService
+      .getBook(this.limit, this.page, this.search)
+      .subscribe((response: BookGetResponse) => {
+        this.books = response.items;
+        this.bookDisplay = response.items;
+        this.total = response.totalItems;
+      });
   }
 
   onShowCategory(newCategory: string): void {
-    this.bookDisplay = this.books.filter((book) => {
-      return book.category.id.toString() == newCategory.toString();
-    });
+    if (this.category !== newCategory) {
+      this.category = newCategory;
+      this.bookService
+        .getBookByCategory(newCategory)
+        .subscribe((response: BookGetResponse) => {
+          this.books = response.items;
+          this.bookDisplay = response.items;
+          this.total = response.totalItems;
+        });
+    }
   }
 
   onAddToCart(book: BookModel): void {
     const cartItem: CartItemModel = {
-      product: book.image,
+      productImage: book.image,
       name: book.title,
       price: book.price,
       quantity: 1,
-      id: book.id,
+      productId: book.id.toString(),
     };
 
     this.cartService.addToCart(cartItem);
+  }
+
+  pageChangeEvent(event: any) {
+    this.page = event;
+    this.getBooks();
   }
 }
