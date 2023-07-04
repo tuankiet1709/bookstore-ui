@@ -1,5 +1,6 @@
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { ActivatedRoute, Params } from '@angular/router';
+import { switchMap } from 'rxjs';
 import { BookModel } from 'src/app/shared/models';
 import { BookService, CartService } from 'src/app/shared/services';
 
@@ -18,12 +19,15 @@ export class BookDetailComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.route.params.subscribe((params: Params) => {
-      const id = params['id'];
-      this.bookService.getById(id).subscribe((response: BookModel) => {
-        this.book = response;
+    this.route.paramMap
+      .pipe(
+        switchMap((params: Params) => {
+          return this.bookService.getById(params['id']);
+        })
+      )
+      .subscribe((book: BookModel) => {
+        this.book = book;
       });
-    });
   }
 
   onAddToCart(): void {

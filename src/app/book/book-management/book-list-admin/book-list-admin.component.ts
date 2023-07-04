@@ -1,9 +1,14 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
+import {
+  Subject,
+  debounceTime,
+  distinctUntilChanged,
+  switchMap,
+  takeUntil,
+} from 'rxjs';
 import { BookModel, CategoryModel } from 'src/app/shared/models';
-import IQueryBookModel from 'src/app/shared/models/book/book-pagination.model';
 import { BookGetResponse } from 'src/app/shared/models/book/book-response.model';
 import { BookService, CategoryService } from 'src/app/shared/services';
 
@@ -15,7 +20,6 @@ import { BookService, CategoryService } from 'src/app/shared/services';
 export class BookListAdminComponent implements OnInit, OnDestroy {
   books: BookModel[];
   categories: CategoryModel[];
-  query = {} as IQueryBookModel;
   page: number = 1;
   limit: number = 6;
   total: number = 0;
@@ -44,22 +48,21 @@ export class BookListAdminComponent implements OnInit, OnDestroy {
 
     this.searchForm.valueChanges
       .pipe(
-        distinctUntilChanged(),
+        takeUntil(this.$destroy),
         debounceTime(1000),
-        takeUntil(this.$destroy)
+        distinctUntilChanged(),
+        switchMap((form) => {
+          this.search = form.search;
+          return this.bookService.getBook(this.limit, this.page, this.search);
+        })
       )
-      .subscribe((form) => {
-        this.search = form.search;
-        this.getBooks();
+      .subscribe((response: BookGetResponse) => {
+        this.books = response.items;
+        this.total = response.totalItems;
       });
-
-    this.getBooks();
   }
 
   getBooks() {
-    this.query.limit = this.limit;
-    this.query.page = this.page;
-    this.query.search = this.search;
     this.bookService
       .getBook(this.limit, this.page, this.search)
       .subscribe((response: BookGetResponse) => {
