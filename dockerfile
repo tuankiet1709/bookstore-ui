@@ -1,20 +1,18 @@
-###### Install dependencies only when needed ######
-FROM node:18-alpine AS builder
+## Stage 1: build production dependencies
+FROM node:18-alpine AS install
 WORKDIR /app
-COPY package.json .
-RUN npm install --legacy-peer-deps
+COPY package*.json ./
+RUN npm ci --only=production --legacy-peer-deps
+
+## Stage 2: build application
+FROM install AS builder
+WORKDIR /app
 COPY . .
-RUN npm run build
+RUN npm ci --legacy-peer-deps && npm run build
 
-
-######  Use NgInx alpine image  ######
+## Run application with nginx
 FROM nginx:stable-alpine
-RUN rm -rf /usr/share/nginx/html/*
-COPY ./nginx/nginx.conf /etc/nginx/nginx.conf
-RUN chown -R nginx:nginx /etc/nginx/nginx.conf \
-  && chown -R nginx:nginx /usr/share/nginx/html \
-  && chmod -R 755 /usr/share/nginx/html
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/dist/bookstore-ui /usr/share/nginx/html
 
-# Start NgInx service
+## Start NgInx service
 CMD ["nginx", "-g", "daemon off;"]
