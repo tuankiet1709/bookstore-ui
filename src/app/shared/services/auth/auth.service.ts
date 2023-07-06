@@ -72,8 +72,13 @@ export class AuthService {
   }
 
   LoginUser(email: string, password: string) {
-    const authData: AuthData = { email: email, password: password };
-    return this.httpClient.post<Login>(environment.auth.login, authData);
+    return this.httpClient.post<Login>(environment.auth.login, {
+      grant_type: 'password',
+      client_id: 'angular',
+      client_secret: 'emjN9ReYZyWDB7IwRwO8eLhFbxG4DeQk',
+      username: email,
+      password: password,
+    });
   }
 
   Logout() {

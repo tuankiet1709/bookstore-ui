@@ -3,11 +3,12 @@
 // The list of file replacements can be found in `angular.json`.
 
 const baseUrl = 'http://localhost:3080';
+const authUrl = 'http://localhost:8080';
 
 export const environment = {
   production: false,
   auth: {
-    login: baseUrl + '/api/users/login',
+    login: authUrl + '/auth/realms/demo/protocol/openid-connect/token',
     register: baseUrl + '/api/users/register',
   },
   book: {

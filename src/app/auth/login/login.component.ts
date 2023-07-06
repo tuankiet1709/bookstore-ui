@@ -5,6 +5,7 @@ import { NgForm } from '@angular/forms';
 import { MatTabGroup } from '@angular/material/tabs';
 import { Router } from '@angular/router';
 import { Login } from 'src/app/shared/models';
+import { OidcSecurityService } from 'angular-auth-oidc-client';
 
 @Component({
   selector: 'app-login',
@@ -17,7 +18,11 @@ export class LoginComponent implements OnInit, OnDestroy {
   $destroy = new Subject();
   Loading = false;
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    public oidcSecurityService: OidcSecurityService
+  ) {}
 
   ngOnInit(): void {}
 
@@ -37,25 +42,32 @@ export class LoginComponent implements OnInit, OnDestroy {
     if (form.invalid) {
       return;
     }
-    this.authService
-      .LoginUser(form.value.emailLogin, form.value.passwordLogin)
-      .subscribe((res: Login) => {
-        console.log('login successful');
-        this.authService.saveCookie(
-          res.userId,
-          res.token,
-          res.expireAt,
-          res.name,
-          res.role,
-          form.value.emailLogin
-        );
-        this.authService.setEmailListener(form.value.emailLogin);
-        if (res.role == 'admin') {
-          this.router.navigate(['/books/management/book-list']);
-        } else {
-          this.router.navigate(['/books']);
-        }
-      });
+
+    this.oidcSecurityService.authorize('angular');
+
+    // this.authService
+    //   .LoginUser(form.value.emailLogin, form.value.passwordLogin)
+    //   .subscribe((res: Login) => {
+    //     console.log('test login: ', res);
+    //     this.oidcSecurityService.checkAuth().subscribe((res) => {
+    //       console.log('testsetest:', res);
+    //     });
+    //     console.log('login successful');
+    //     this.authService.saveCookie(
+    //       res.userId,
+    //       res.token,
+    //       res.expireAt,
+    //       res.name,
+    //       res.role,
+    //       form.value.emailLogin
+    //     );
+    //     this.authService.setEmailListener(form.value.emailLogin);
+    //     if (res.role == 'admin') {
+    //       this.router.navigate(['/books/management/book-list']);
+    //     } else {
+    //       this.router.navigate(['/books']);
+    //     }
+    //   });
   }
 
   ngOnDestroy(): void {
