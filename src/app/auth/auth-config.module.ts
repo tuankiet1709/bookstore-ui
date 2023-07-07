@@ -5,14 +5,17 @@ import { AuthModule, LogLevel } from 'angular-auth-oidc-client';
   imports: [
     AuthModule.forRoot({
       config: {
+        configId: 'angular',
         authority: 'http://localhost:8080/auth/realms/demo',
-        redirectUrl: window.location.origin,
-        postLogoutRedirectUri: window.location.origin,
-        clientId: 'frontend',
-        scope: 'email roles openid profile offline_access', // 'openid profile offline_access ' + your scopes
+        redirectUrl: 'http://localhost:4200/',
+        postLogoutRedirectUri: window.location.host,
+        clientId: 'angular',
+        scope: 'email', // 'openid profile ' + your scopes
         responseType: 'code',
+        usePushedAuthorisationRequests: true,
         silentRenew: true,
         useRefreshToken: true,
+        renewTimeBeforeTokenExpiresInSeconds: 10,
         logLevel: LogLevel.Debug,
       },
     }),

@@ -7,8 +7,8 @@ import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { AuthModule } from './auth/auth.module';
 import { AuthConfigModule } from './auth/auth-config.module';
+import { AuthModule, LogLevel } from 'angular-auth-oidc-client';
 
 @NgModule({
   declarations: [AppComponent],
@@ -19,8 +19,23 @@ import { AuthConfigModule } from './auth/auth-config.module';
     FormsModule,
     ReactiveFormsModule,
     SharedModule,
-    AuthModule,
     AuthConfigModule,
+    AuthModule.forRoot({
+      config: {
+        configId: 'angular',
+        authority: 'http://localhost:8080/auth/realms/demo',
+        redirectUrl: 'http://localhost:4200/',
+        postLogoutRedirectUri: window.location.host,
+        clientId: 'angular',
+        scope: 'email', // 'openid profile ' + your scopes
+        responseType: 'code',
+        usePushedAuthorisationRequests: true,
+        silentRenew: true,
+        useRefreshToken: true,
+        renewTimeBeforeTokenExpiresInSeconds: 10,
+        logLevel: LogLevel.Debug,
+      },
+    }),
   ],
   providers: [],
   bootstrap: [AppComponent],

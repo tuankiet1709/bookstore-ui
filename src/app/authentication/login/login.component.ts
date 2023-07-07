@@ -5,7 +5,11 @@ import { NgForm } from '@angular/forms';
 import { MatTabGroup } from '@angular/material/tabs';
 import { Router } from '@angular/router';
 import { Login } from 'src/app/shared/models';
-import { OidcSecurityService } from 'angular-auth-oidc-client';
+import {
+  OidcSecurityService,
+  OpenIdConfiguration,
+} from 'angular-auth-oidc-client';
+import { v4 as uuidv4 } from 'uuid';
 
 @Component({
   selector: 'app-login',
@@ -14,6 +18,7 @@ import { OidcSecurityService } from 'angular-auth-oidc-client';
 })
 export class LoginComponent implements OnInit, OnDestroy {
   @ViewChild('tabGroup') tabGroup: MatTabGroup;
+  configurations: OpenIdConfiguration[];
 
   $destroy = new Subject();
   Loading = false;
@@ -24,7 +29,20 @@ export class LoginComponent implements OnInit, OnDestroy {
     public oidcSecurityService: OidcSecurityService
   ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.configurations = this.oidcSecurityService.getConfigurations();
+
+    console.log('configuration: ', this.configurations);
+
+    this.oidcSecurityService
+      .checkAuth('angular')
+      .subscribe((loginResponse: any) => {
+        const { isAuthenticated, userData, accessToken, idToken, configId } =
+          loginResponse;
+
+        console.log('test: ', loginResponse);
+      });
+  }
 
   onSignup(form: NgForm) {
     if (form.invalid) {
@@ -43,7 +61,17 @@ export class LoginComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.oidcSecurityService.authorize('angular');
+    const authOptions = {
+      customParams: {
+        grant_type: 'password',
+        client_secret: 's2UV05MWYLWBFTQNzacDQmWWGkEVlc22',
+        username: form.value.emailLogin,
+        password: form.value.passwordLogin,
+      },
+    };
+
+    const test = this.oidcSecurityService.authorize('angular', authOptions);
+    console.log('test: ', test);
 
     // this.authService
     //   .LoginUser(form.value.emailLogin, form.value.passwordLogin)
@@ -68,6 +96,11 @@ export class LoginComponent implements OnInit, OnDestroy {
     //       this.router.navigate(['/books']);
     //     }
     //   });
+  }
+
+  logout() {
+    const test = this.oidcSecurityService.logoff('angular');
+    console.log('logout ', test);
   }
 
   ngOnDestroy(): void {

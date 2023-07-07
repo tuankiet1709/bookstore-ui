@@ -1,14 +1,19 @@
-import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Inject, Injectable } from '@angular/core';
 import { CookieService } from 'ngx-cookie-service';
 import { AuthData, AuthDataRegister, Login } from '../../models';
 import { environment } from 'src/environments/environment';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import {
+  OidcSecurityService,
+  OpenIdConfiguration,
+} from 'angular-auth-oidc-client';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
+  private configurations: OpenIdConfiguration[];
   public authStatusListener = new BehaviorSubject<boolean>(false);
   public nameUpdated = new BehaviorSubject<string | null>('');
   public roleUpdated = new BehaviorSubject<string | null>('');
@@ -17,11 +22,15 @@ export class AuthService {
   private name: string | null = '';
   private role: string | null = '';
   private email: string | null = '';
+  private authUrl = 'http://localhost:8080/auth/realms/demo';
 
   constructor(
     private httpClient: HttpClient,
-    private cookieService: CookieService
+    private cookieService: CookieService,
+    private oidcSecurityService: OidcSecurityService
   ) {
+    this.configurations = this.oidcSecurityService.getConfigurations();
+
     this.checkCookie();
   }
 
@@ -72,12 +81,27 @@ export class AuthService {
   }
 
   LoginUser(email: string, password: string) {
-    return this.httpClient.post<Login>(environment.auth.login, {
+    const body = {
       grant_type: 'password',
       client_id: 'angular',
-      client_secret: 'emjN9ReYZyWDB7IwRwO8eLhFbxG4DeQk',
+      client_secret: 's2UV05MWYLWBFTQNzacDQmWWGkEVlc22',
       username: email,
       password: password,
+    };
+
+    const authOptions = {
+      customParams: {
+        grant_type: 'password',
+        client_id: 'angular',
+        client_secret: 's2UV05MWYLWBFTQNzacDQmWWGkEVlc22',
+        username: email,
+        password: password,
+      },
+    };
+
+    this.oidcSecurityService.authorize('angular', authOptions);
+    return this.httpClient.post<Login>(environment.auth.login, body, {
+      headers: this.getHeaders(),
     });
   }
 
@@ -146,5 +170,29 @@ export class AuthService {
     } else {
       this.clearAuthData();
     }
+  }
+
+  private getHeaders() {
+    let headers = new HttpHeaders();
+    headers = headers.set('Content-Type', 'application/json');
+    return this.appendAuthHeader(headers);
+  }
+
+  public getToken() {
+    const token = this.oidcSecurityService.getAccessToken();
+    return token;
+  }
+
+  private appendAuthHeader(headers: HttpHeaders) {
+    const token = this.oidcSecurityService.getAccessToken();
+
+    if (token === '') {
+      return headers;
+    }
+
+    const tokenValue =
+      'Bearer ' +
+      'eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI3bXd5RzFfRHo4NF9ZX3Nwcm81N1dTd3dWTElERTBsZ25lQ3ZINXR6VlhNIn0.eyJleHAiOjE2ODg3MTI1OTIsImlhdCI6MTY4ODcxMjI5MiwianRpIjoiOWI1OThmZDItOWQ4Yi00ZTcxLTg0ZDgtODkyYjQ1OGQ3YzU0IiwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo4MDgwL2F1dGgvcmVhbG1zL2RlbW8iLCJzdWIiOiJlMjYyZjhlYS03OTFkLTQ2MTEtOWJjNS03ZGMwNTUzMDhjZTgiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJhbmd1bGFyIiwic2Vzc2lvbl9zdGF0ZSI6ImU4NTU0NmI1LTMzZjQtNGIzZC05OGMzLWViMTJlMjZhMGFjMyIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiaHR0cDovL2xvY2FsaG9zdDo0MjAwIl0sInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJvZmZsaW5lX2FjY2VzcyIsImFwcC1hZG1pbiIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsiYW5ndWxhciI6eyJyb2xlcyI6WyJhZG1pbiJdfX0sInNjb3BlIjoicHJvZmlsZSBlbWFpbCIsInNpZCI6ImU4NTU0NmI1LTMzZjQtNGIzZC05OGMzLWViMTJlMjZhMGFjMyIsImVtYWlsX3ZlcmlmaWVkIjpmYWxzZSwibmFtZSI6ImFkbWluIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiYWRtaW5AZ21haWwuY29tIiwiZ2l2ZW5fbmFtZSI6ImFkbWluIiwiZW1haWwiOiJhZG1pbkBnbWFpbC5jb20ifQ.Tyyj5JoBt974zTxtuoPHIus-eK_jdKTknK2n6l6cq6oisoiDjgB1ufEK_XRhhfBVFoNOVqtOqbzZMHQnAbgrihc67c932n4ArwdI6i99RPh1JhT3x13b4cFBgnkRw0Ql9ST-Rc2vMwYdokFok9btaVEOmZ7uNz-WoRjV5MXFs-0tw4u5wtkXt37eEkkMvrkkjFFQJeF84QgNEcnWNd4ZNK1UCmzi8eFJBAP8zBa90H7UZoT5U91MsQMx9sQWDRR1jsIeCv5dirydBHJlhwSoNpBi9FXJHlb8ahPR9LaaKa6AHPx_XSVR2y9S58kY6F9Lqa-AZnXXWjyKDU5r2YawCg';
+    return headers.set('Authorization', tokenValue);
   }
 }
