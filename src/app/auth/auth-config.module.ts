@@ -1,8 +1,10 @@
 import { NgModule } from '@angular/core';
 import { AuthModule, LogLevel } from 'angular-auth-oidc-client';
-
+import { UnauthorizedComponent } from './unauthorized/unauthorized.component';
+import { AuthRoutingModule } from './auth-routing.module';
 @NgModule({
   imports: [
+    AuthRoutingModule,
     AuthModule.forRoot({
       config: {
         configId: 'angular',
@@ -21,5 +23,6 @@ import { AuthModule, LogLevel } from 'angular-auth-oidc-client';
     }),
   ],
   exports: [AuthModule],
+  declarations: [UnauthorizedComponent],
 })
 export class AuthConfigModule {}

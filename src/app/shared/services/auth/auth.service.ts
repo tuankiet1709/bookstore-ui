@@ -89,17 +89,6 @@ export class AuthService {
       password: password,
     };
 
-    const authOptions = {
-      customParams: {
-        grant_type: 'password',
-        client_id: 'angular',
-        client_secret: 's2UV05MWYLWBFTQNzacDQmWWGkEVlc22',
-        username: email,
-        password: password,
-      },
-    };
-
-    this.oidcSecurityService.authorize('angular', authOptions);
     return this.httpClient.post<Login>(environment.auth.login, body, {
       headers: this.getHeaders(),
     });
@@ -174,8 +163,8 @@ export class AuthService {
 
   private getHeaders() {
     let headers = new HttpHeaders();
-    headers = headers.set('Content-Type', 'application/json');
-    return this.appendAuthHeader(headers);
+    headers = headers.set('Content-Type', 'application/x-www-form-urlencoded');
+    return headers;
   }
 
   public getToken() {

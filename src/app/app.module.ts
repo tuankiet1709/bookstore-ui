@@ -7,8 +7,8 @@ import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { AuthConfigModule } from './auth/auth-config.module';
 import { AuthModule, LogLevel } from 'angular-auth-oidc-client';
+import { AuthConfigModule } from './auth/auth-config.module';
 
 @NgModule({
   declarations: [AppComponent],
@@ -19,21 +19,26 @@ import { AuthModule, LogLevel } from 'angular-auth-oidc-client';
     FormsModule,
     ReactiveFormsModule,
     SharedModule,
-    AuthConfigModule,
+    // AuthConfigModule,
     AuthModule.forRoot({
       config: {
         configId: 'angular',
         authority: 'http://localhost:8080/auth/realms/demo',
         redirectUrl: 'http://localhost:4200/',
-        postLogoutRedirectUri: window.location.host,
+        postLogoutRedirectUri: 'http://localhost:4200/books',
         clientId: 'angular',
-        scope: 'email', // 'openid profile ' + your scopes
+        scope: 'email profile offline_access', // 'openid profile ' + your scopes
         responseType: 'code',
         usePushedAuthorisationRequests: true,
         silentRenew: true,
         useRefreshToken: true,
-        renewTimeBeforeTokenExpiresInSeconds: 10,
         logLevel: LogLevel.Debug,
+        customParamsAuthRequest: {
+          client_secret: 'VERCLdeHWki1vbnGKO5qiKmUuYaLAj9t',
+        },
+        customParamsCodeRequest: {
+          client_secret: 'VERCLdeHWki1vbnGKO5qiKmUuYaLAj9t',
+        },
       },
     }),
   ],

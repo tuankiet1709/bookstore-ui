@@ -22,6 +22,11 @@ const routes: Routes = [
     path: 'cart',
     loadChildren: () => import('./cart/cart.module').then((m) => m.CartModule),
   },
+  {
+    path: 'unauthorized',
+    loadChildren: () =>
+      import('./auth/auth-config.module').then((m) => m.AuthConfigModule),
+  },
 ];
 
 @NgModule({

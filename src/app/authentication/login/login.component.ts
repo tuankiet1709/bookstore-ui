@@ -4,12 +4,11 @@ import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { MatTabGroup } from '@angular/material/tabs';
 import { Router } from '@angular/router';
-import { Login } from 'src/app/shared/models';
 import {
   OidcSecurityService,
   OpenIdConfiguration,
 } from 'angular-auth-oidc-client';
-import { v4 as uuidv4 } from 'uuid';
+import { Login } from 'src/app/shared/models';
 
 @Component({
   selector: 'app-login',
@@ -30,18 +29,14 @@ export class LoginComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.configurations = this.oidcSecurityService.getConfigurations();
+    this.oidcSecurityService.checkAuth().subscribe((loginResponse: any) => {
+      const { isAuthenticated, userData } = loginResponse;
 
-    console.log('configuration: ', this.configurations);
+      const token = this.oidcSecurityService.getAccessToken();
 
-    this.oidcSecurityService
-      .checkAuth('angular')
-      .subscribe((loginResponse: any) => {
-        const { isAuthenticated, userData, accessToken, idToken, configId } =
-          loginResponse;
-
-        console.log('test: ', loginResponse);
-      });
+      console.log('token: ', token);
+      console.log('test: ', isAuthenticated);
+    });
   }
 
   onSignup(form: NgForm) {
@@ -61,45 +56,37 @@ export class LoginComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const authOptions = {
-      customParams: {
-        grant_type: 'password',
-        client_secret: 's2UV05MWYLWBFTQNzacDQmWWGkEVlc22',
-        username: form.value.emailLogin,
-        password: form.value.passwordLogin,
-      },
-    };
+    const test = this.oidcSecurityService.authorize();
+    console.log('lgoin: ' + test);
 
-    const test = this.oidcSecurityService.authorize('angular', authOptions);
-    console.log('test: ', test);
-
-    // this.authService
-    //   .LoginUser(form.value.emailLogin, form.value.passwordLogin)
-    //   .subscribe((res: Login) => {
-    //     console.log('test login: ', res);
-    //     this.oidcSecurityService.checkAuth().subscribe((res) => {
-    //       console.log('testsetest:', res);
-    //     });
-    //     console.log('login successful');
-    //     this.authService.saveCookie(
-    //       res.userId,
-    //       res.token,
-    //       res.expireAt,
-    //       res.name,
-    //       res.role,
-    //       form.value.emailLogin
-    //     );
-    //     this.authService.setEmailListener(form.value.emailLogin);
-    //     if (res.role == 'admin') {
-    //       this.router.navigate(['/books/management/book-list']);
-    //     } else {
-    //       this.router.navigate(['/books']);
-    //     }
-    //   });
+    this.authService
+      .LoginUser(form.value.emailLogin, form.value.passwordLogin)
+      .subscribe((res: Login) => {
+        console.log('test login: ', res);
+        this.oidcSecurityService.checkAuth().subscribe((res) => {
+          console.log('testsetest:', res);
+        });
+        console.log('login successful');
+        this.authService.saveCookie(
+          res.userId,
+          res.token,
+          res.expireAt,
+          res.name,
+          res.role,
+          form.value.emailLogin
+        );
+        this.authService.setEmailListener(form.value.emailLogin);
+        if (res.role == 'admin') {
+          this.router.navigate(['/books/management/book-list']);
+        } else {
+          this.router.navigate(['/books']);
+        }
+      });
   }
 
   logout() {
-    const test = this.oidcSecurityService.logoff('angular');
+    const test = this.oidcSecurityService.logoff();
+
     console.log('logout ', test);
   }
 
