@@ -1,10 +1,10 @@
+import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { Injectable } from '@angular/core';
 import { CartItemModel } from '../../models';
 import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 import { BehaviorSubject, Observable, take, pipe, tap } from 'rxjs';
 import { BookService } from '../book/book.service';
-import { AuthService } from '../auth/auth.service';
 import { CartCreateModel } from '../../models/cart/cart-create.model';
 import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 
@@ -18,25 +18,33 @@ export class CartService {
   private cart: CartItemModel[] = [];
   private total: number = 0;
   private amount: number = 0;
-  private email: string = this.authService.getEmail() ?? '';
+  private email: string = '';
 
   constructor(
     private httpClient: HttpClient,
     private bookService: BookService,
-    private authService: AuthService
+    private oidcSecurityService: OidcSecurityService
   ) {
-    this.get(this.email)
-      .pipe(
-        tap((res) => {
-          console.log(res);
-        })
-      )
-      .subscribe((res) => {
-        this.cart = res;
-        this.cartListener.next(res);
-        this.setAmount(res);
-        this.setTotal(res);
-      });
+    this.oidcSecurityService.isAuthenticated$.subscribe((res) => {
+      if (res.isAuthenticated) {
+        const userData = this.oidcSecurityService.getUserData();
+        if (userData) {
+          this.email = userData.email;
+          this.get(userData.email)
+            .pipe(
+              tap((res) => {
+                console.log(res);
+              })
+            )
+            .subscribe((res) => {
+              this.cart = res;
+              this.cartListener.next(res);
+              this.setAmount(res);
+              this.setTotal(res);
+            });
+        }
+      }
+    });
   }
 
   getCart() {

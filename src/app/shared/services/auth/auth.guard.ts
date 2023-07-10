@@ -45,13 +45,15 @@ export class AuthGuard implements CanActivate {
     return this.oidcSecurityService.isAuthenticated$.pipe(
       take(1),
       map(({ isAuthenticated }) => {
-        // allow navigation if authenticated
         if (isAuthenticated) {
-          return true;
+          const userData = this.oidcSecurityService.getUserData();
+          if (userData.resource_access.angular.roles[0] === 'admin') {
+            return true;
+          }
         }
 
         // redirect if not authenticated
-        return this.router.parseUrl('/login');
+        return this.router.parseUrl('/unauthorized');
       })
     );
   }

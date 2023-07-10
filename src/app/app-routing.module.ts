@@ -12,8 +12,11 @@ const routes: Routes = [
     loadChildren: () => import('./book/book.module').then((m) => m.BookModule),
   },
   {
-    path: 'login',
-    loadChildren: () => import('./auth/auth.module').then((m) => m.AuthModule),
+    path: 'unauthorized',
+    loadChildren: () =>
+      import('./authentication/authentication.module').then(
+        (m) => m.AuthenticationModule
+      ),
   },
   {
     path: 'cart',
