@@ -26,6 +26,8 @@ import { RouterModule } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
 import { HttpClientInMemoryWebApiModule } from 'angular-in-memory-web-api';
 import { AuthGuard } from './services/auth/auth.guard';
+import { MyStorageService } from './services/auth/storage.service';
+import { AuthInterceptor } from 'angular-auth-oidc-client';
 
 @NgModule({
   declarations: [HeaderComponent, FooterComponent],
@@ -54,7 +56,13 @@ import { AuthGuard } from './services/auth/auth.guard';
       passThruUnknownUrl: true,
     }),
   ],
-  providers: [BookService, CategoryService, AuthGuard],
+  providers: [
+    BookService,
+    CategoryService,
+    AuthGuard,
+    MyStorageService,
+    AuthInterceptor,
+  ],
   exports: [
     HeaderComponent,
     FooterComponent,

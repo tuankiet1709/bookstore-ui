@@ -37,7 +37,7 @@
         </button>
       </div>
       <div class="col-md-1" *ngIf="!userIsAuthenticated">
-        <button routerLink="/login" class="btn button-outline-dark w-100">
+        <button (click)="onLogin()" class="btn button-outline-dark w-100">
           Login/Register
         </button>
       </div>

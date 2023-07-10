@@ -7,8 +7,14 @@ import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { AuthModule, LogLevel } from 'angular-auth-oidc-client';
-import { AuthConfigModule } from './auth/auth-config.module';
+import {
+  AbstractSecurityStorage,
+  AuthInterceptor,
+  AuthModule,
+  LogLevel,
+} from 'angular-auth-oidc-client';
+import { MyStorageService } from './shared/services/auth/storage.service';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
 
 @NgModule({
   declarations: [AppComponent],
@@ -19,30 +25,35 @@ import { AuthConfigModule } from './auth/auth-config.module';
     FormsModule,
     ReactiveFormsModule,
     SharedModule,
-    // AuthConfigModule,
     AuthModule.forRoot({
       config: {
-        configId: 'angular',
-        authority: 'http://localhost:8080/auth/realms/demo',
+        authority: 'http://localhost:8080/realms/demo',
         redirectUrl: 'http://localhost:4200/',
-        postLogoutRedirectUri: 'http://localhost:4200/books',
+        postLogoutRedirectUri: 'http://localhost:4200/',
         clientId: 'angular',
-        scope: 'email profile offline_access', // 'openid profile ' + your scopes
+        scope: 'openid email roles profile offline_access',
         responseType: 'code',
-        usePushedAuthorisationRequests: true,
         silentRenew: true,
         useRefreshToken: true,
-        logLevel: LogLevel.Debug,
         customParamsAuthRequest: {
-          client_secret: 'VERCLdeHWki1vbnGKO5qiKmUuYaLAj9t',
+          client_secret: 'vJUQRBMQmcZcNkByIzWTxGepccdqnQpB',
         },
         customParamsCodeRequest: {
-          client_secret: 'VERCLdeHWki1vbnGKO5qiKmUuYaLAj9t',
+          client_secret: 'vJUQRBMQmcZcNkByIzWTxGepccdqnQpB',
         },
+        storage: new MyStorageService(),
+        // logLevel: LogLevel.Debug,
       },
     }),
   ],
-  providers: [],
+  providers: [
+    { provide: AbstractSecurityStorage, useClass: MyStorageService },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptor,
+      multi: true,
+    },
+  ],
   bootstrap: [AppComponent],
 })
 export class AppModule {}
